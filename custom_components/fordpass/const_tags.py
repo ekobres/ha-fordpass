@@ -750,6 +750,7 @@ NUMBERS = [
         tag=Tag.RCC_TEMPERATURE,
         key=Tag.RCC_TEMPERATURE.key,
         icon="mdi:thermometer",
+        device_class=NumberDeviceClass.TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         native_min_value=16.0,
         native_max_value=30.0,
