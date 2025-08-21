@@ -3,7 +3,7 @@ import logging
 
 from homeassistant.components.number import NumberEntity
 from homeassistant.components.switch import SwitchEntity
-from homeassistant.const import UnitOfTemperature
+from homeassistant.const import UnitOfTemperature, EVENT_CORE_CONFIG_UPDATE
 
 from custom_components.fordpass import FordPassEntity, RCC_TAGS, FordPassDataUpdateCoordinator
 from custom_components.fordpass.const import DOMAIN, COORDINATOR_KEY, REMOTE_START_STATE_ACTIVE
@@ -36,6 +36,20 @@ class FordPassNumber(FordPassEntity, NumberEntity):
 
     def __init__(self, coordinator: FordPassDataUpdateCoordinator, entity_description: ExtNumberEntityDescription):
         super().__init__(a_tag=entity_description.tag, coordinator=coordinator, description=entity_description)
+        self._unsub_config_listener = None
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        if getattr(self, "_tag", None) == Tag.RCC_TEMPERATURE:
+            def _on_core_config_update(_):
+                self.async_write_ha_state()
+            self._unsub_config_listener = self.hass.bus.async_listen(EVENT_CORE_CONFIG_UPDATE, _on_core_config_update)
+
+    async def async_will_remove_from_hass(self):
+        if self._unsub_config_listener:
+            self._unsub_config_listener()
+            self._unsub_config_listener = None
+        await super().async_will_remove_from_hass()
 
     @property
     def extra_state_attributes(self):
@@ -58,7 +72,7 @@ class FordPassNumber(FordPassEntity, NumberEntity):
     async def async_set_native_value(self, value) -> None:
         try:
             if value is None or str(value) == "null" or str(value).lower() == "none":
-                await self._tag.async_set_value(self.coordinator.data, self.coordinator.bridge, None)
+                return
             else:
                 await self._tag.async_set_value(self.coordinator.data, self.coordinator.bridge, str(value))
 
@@ -74,7 +88,7 @@ class FordPassNumber(FordPassEntity, NumberEntity):
         return state
 
     @property
-    def native_step(self):
+    def suggested_display_precision(self):
         if getattr(self, "_tag", None) == Tag.RCC_TEMPERATURE:
-            return 1.0 if self.hass.config.units.temperature_unit == UnitOfTemperature.FAHRENHEIT else 0.5
-        return super().native_step
+            return 0 if self.hass.config.units.temperature_unit == UnitOfTemperature.FAHRENHEIT else 1
+        return super().suggested_display_precision
