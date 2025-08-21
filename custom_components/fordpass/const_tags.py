@@ -755,7 +755,7 @@ NUMBERS = [
         native_min_value=16.0,
         native_max_value=30.0,
         native_step=0.5,
-        mode=NumberMode.SLIDER,
+        mode=NumberMode.BOX,
         has_entity_name=True,
     )
 ]
