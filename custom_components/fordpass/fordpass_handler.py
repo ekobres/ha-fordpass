@@ -987,10 +987,14 @@ class FordpassDataHandler:
         return UNSUPPORTED
 
     # number(s) for the RCC
-    async def set_rcc_SetPointTemp_Rq(data, vehicle, target_value: str, current_value:str):
-        if not (target_value.endswith("0") or target_value.endswith("5")):
-            _LOGGER.info(f"RCC SetPointTemp_Rq: target_value {target_value} is not a valid value, must end with 0 or 5")
+    async def set_rcc_SetPointTemp_Rq(data, vehicle, target_value, current_value):
+        try:
+            v = float(target_value)
+        except Exception:
             return False
+        v = max(16.0, min(30.0, round(v * 2.0) / 2.0))
+        target_value = f"{v:.1f}"
+
         return await FordpassDataHandler.set_rcc_int("SetPointTemp_Rq", data, vehicle, target_value.replace('.', '_'))
 
     # switches for the RCC

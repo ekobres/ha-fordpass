@@ -3,6 +3,7 @@ import logging
 
 from homeassistant.components.number import NumberEntity
 from homeassistant.components.switch import SwitchEntity
+from homeassistant.const import UnitOfTemperature
 
 from custom_components.fordpass import FordPassEntity, RCC_TAGS, FordPassDataUpdateCoordinator
 from custom_components.fordpass.const import DOMAIN, COORDINATOR_KEY, REMOTE_START_STATE_ACTIVE
@@ -71,3 +72,9 @@ class FordPassNumber(FordPassEntity, NumberEntity):
         if self._tag in RCC_TAGS:
             return state #and Tag.REMOTE_START_STATUS.get_state(self.coordinator.data) == REMOTE_START_STATE_ACTIVE
         return state
+
+    @property
+    def native_step(self):
+        if getattr(self, "_tag", None) == Tag.RCC_TEMPERATURE:
+            return 1.0 if self.hass.config.units.temperature_unit == UnitOfTemperature.FAHRENHEIT else 0.5
+        return super().native_step
