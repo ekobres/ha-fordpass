@@ -42,7 +42,7 @@ class FordPassNumber(FordPassEntity, NumberEntity):
         await super().async_added_to_hass()
         if getattr(self, "_tag", None) == Tag.RCC_TEMPERATURE:
             def _on_core_config_update(_):
-                self.async_write_ha_state()
+                self.schedule_update_ha_state()
             self._unsub_config_listener = self.hass.bus.async_listen(EVENT_CORE_CONFIG_UPDATE, _on_core_config_update)
 
     async def async_will_remove_from_hass(self):
